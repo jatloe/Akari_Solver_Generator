@@ -12,6 +12,8 @@ def sumbinom(n,k):
     if k*2 > n: return 2**n - sumbinom(n,n-(k+1))
     return sum(binom(n,i) for i in range(k+1))
 
+# Returns the restriction of all linear programming constraints in the puzzle on the set "cells". Some examples are written as comments below.
+# Only the nontrivial restrictions are returned.
 def computeLPRestriction(s, width, cells):
     # ((1,3),1,0,tuple()) for cells[1]+cells[3] <= 1, the whole thing was (1,3) only
     # ((2,3,4),2,1,(1,2)) for cells[2]+cells[3]+cells[4] >= 2, the whole thing was (s[1]+s[2])+(2,3,4) >= 3
@@ -92,6 +94,7 @@ def computeLPRestriction(s, width, cells):
     
     return ans
 
+# By going through all 2^len(cells) possibilities, returns the puzzle after all progress has been made using the restriction of all constraints on "cells".
 def lp_bash(s, width, cells):
     assert all(s[cell] == "." for cell in cells), f"LP bash only works on unknown cells! {s} {cells}"
 
@@ -166,6 +169,11 @@ def lp_bash(s, width, cells):
 
 from itertools import combinations
 
+# Attempts the "red blue graph" deduction strategy on the puzzle.
+# Consider a graph on the the cells in the puzzle where there is a red edge drawn between two cells if they cannot both be a light,
+# while there is a blue edge drawn between them if they cannot both be a non-light.
+# Then a cycle of even length that alternates red and blue edges must have all relevant constraints saturated,
+# while a cycle of odd length that alternates red and blue edges except at one "special vertex" where both colors are the same must have its "special vertex" determined.
 def attempt_red_blue_graph(s, width):
     constraints = getAllConstraints(s, width)
     red = set()

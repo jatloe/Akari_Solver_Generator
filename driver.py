@@ -4,6 +4,7 @@ from rules import set_width, cell_nbrs, light_up, print2D, decode_puzzle, encode
 from solver import solve, condense_lp, reset_stats, STATS
 from time import perf_counter as pc
 
+# Tests the solver on all puzzles in the puzz.link database.
 def test_all_puzzles():
     start_time = pc()
     all_puzzles = open("puzzle_bank.txt","r",encoding="utf16").readlines()
@@ -28,6 +29,7 @@ def test_all_puzzles():
 
     exit()
 
+# Tests the solver on a specific puzzle.
 def test_puzzle(link):
     puzzle,width = decode_puzzle(link)
     set_width(width)

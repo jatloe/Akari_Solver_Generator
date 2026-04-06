@@ -8,13 +8,11 @@ import itertools
 from rules import cell_nbrs, cell_reaches, progress_valid, puzzle_completed, print2D, get_children_ind, set_width, light_up, remaining_lightables
 from lpbasher import lp_bash, getAllConstraints, minimalDeductionSet, attempt_red_blue_graph
 
-# random.seed(1434)
-
 DEFAULT_DEDUCTION_LIMIT = 30
 DEFAULT_RECURSION_LIMIT = 2
 SMALL_DEDUCTION_CUTOFF = 999999
-SMALL_CONSTRAINT_CUTOFF = 4 # Set dynamically below - not anymore
-STRATEGIES = ["SC2", "SC3", "N1D"] # ["N2", "SC2", "SC3", "N1D"]
+SMALL_CONSTRAINT_CUTOFF = 4
+STRATEGIES = ["SC2", "SC3", "N1D"]
 
 MAX_LP_COUNT = 4
 
@@ -31,46 +29,8 @@ DEFAULT_STATS = {
 
 STATS = deepcopy(DEFAULT_STATS)
 
-# class FocusCellsList:
-#     def __init__(self, givenList=[], possibleList=None):
-#         self.list = givenList[:]
-#         self.ignoreset = set()
-#         self.possibleList = possibleList
-
-#     def extend(self, given):
-#         self.list += given
-#         self.ignoreset -= {*given}
-
-#     def is_empty(self):
-#         while self.list and self.list[-1] in self.ignoreset: self.list.pop()
-#         return len(self.list) == 0
-
-#     def pop(self):
-#         ans = self.list.pop()
-#         while self.list and ans in self.ignoreset:
-#             ans = self.list.pop()
-#         if ans in self.ignoreset: raise Exception("Pop from empty FocusCellsList")
-#         self.ignoreset.add(ans)
-#         return ans
-    
-#     def clean(self):
-#         ans = []
-#         seenset = set()
-#         for x in self.list:
-#             if x in seenset or x in self.ignoreset: continue
-#             seenset.add(x)
-#             ans += [x]
-#         self.list = ans[::-1]
-#         self.ignoreset = set()
-    
-#     def shuffle(self):
-#         random.shuffle(self.list)
-    
-#     def copy(self):
-#         ans = FocusCellsList(self.list[:], possibleList=self.possibleList)
-#         ans.ignoreset = self.ignoreset.copy()
-#         return ans
-
+# A list of cells that could theoretically have a deduction on them.
+# Unfortunately, this is usually the full list of cells.
 class FocusCellsList:
     def __init__(self, givenList, possibleList=None):
         if possibleList is None: possibleList = givenList[:]
@@ -122,12 +82,10 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
                     if unfilled[y] in "#01234": continue
                     if y not in friends[x]: friends[x] += [y]
 
-    def friends_but_more(s,ind): # Friends of friends
-        # if s[ind] != "@": return friends[ind][:]
-        return []
-        return sorted({v for u in friends[ind] for v in friends[u]})
-
-    def simpleDeductions(s, focus_cell): # Check if s[focus_cell] is obvious, returns None if puzzle is impossible
+    # Checks if the cell with index focus_cell can be deduced.
+    # If so, returns the updated grid. Otherwise, returns the current grid.
+    # If the puzzle is impossible, returns None.
+    def simpleDeductions(s, focus_cell):
         if s[focus_cell] != ".": return s
 
         # Shadow solve
@@ -161,8 +119,8 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
             if s[cell] == "@": raise Exception("what!"); return s[:focus_cell] + " " + s[focus_cell+1:]
         return s
 
+    # Returns all potential LP deduction sets of cycles of 4 cells in the "shares a constraint" graph.
     def LP_deduction_candidates_helper_friends_c4(s):
-        # TODO: Use MAX_LP_COUNT
         ans = []
 
         empty = [x for x in range(len(s)) if s[x] == "."]
@@ -186,6 +144,7 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
         for s in sets: ans |= s
         return ans
 
+    # Returns all potential LP deduction sets of cells adjacent to one of n number clues.
     def LP_deduction_candidates_helper_n_numbers(s,n):
         numberChoices = set()
 
@@ -217,6 +176,7 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
     def LP_deduction_candidates_helper_three_numbers(s):
         return LP_deduction_candidates_helper_n_numbers(s,3)
 
+    # Returns all potential LP deduction sets of cells orthogonally or diagonally adjacent to one number clue.
     def LP_deduction_candidates_helper_one_number_diagonal(s):
         ans = []
 
@@ -227,6 +187,7 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
         
         return ans
 
+    # Returns all potential LP deduction sets of cells that are the union of n small constraints (size <= 4).
     def LP_deduction_candidates_helper_n_small_constraints(s, n):
         if SMALL_CONSTRAINT_CUTOFF <= 1: return []
         
@@ -273,10 +234,6 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
             for comb in itertools.combinations(smallConstraints, r=n):
                 ans += [tuple(union_the_sets(comb))]
 
-        # if n == 4: print(ans)
-
-        # print(ans)
-        
         return ans
     
     def LP_deduction_candidates_helper_two_small_constraints(s):
@@ -288,6 +245,7 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
     def LP_deduction_candidates_helper_four_small_constraints(s):
         return LP_deduction_candidates_helper_n_small_constraints(s,4)
 
+    # Returns all potential LP deduction sets of cells using the given strategies.
     def LP_deduction_candidates(s, strategies=["C4","N3","N2","SC2","SC3","N1D"]):
         ans = []
         seenans = set()
@@ -314,6 +272,7 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
 
         return ans
 
+    # Usually uses simpleDeductions, sometimes uses LP deductions, and only resorts to bifurcation if completely necessary.
     # Recursion depth is the limit (goes down), depth of recursion goes up
     def solve_recurse(s, focus_cells, is_top_layer, recursion_limit, current_recursion_depth, deduction_limit):
         if not progress_valid(s): return False
@@ -328,20 +287,18 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
 
         focus_cells.shuffle()
 
+        # Simple deductions
         while not focus_cells.is_empty():
             if deduction_limit <= 0 and not is_top_layer:
                 if not progress_valid(s): return False
                 return True
 
             node = focus_cells.pop()
-
             t = simpleDeductions(s, node)
-
             if t is None: return False
             if s == t: continue
 
             focus_cells.reset()
-
             s = t
             deduction_limit -= 1
 
@@ -351,11 +308,6 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
             else:
                 STATS["temp recursions"] += 1
                 STATS["temp grids"] += [(s,current_recursion_depth,tuple())]
-
-            # if prev_s == "- .#....#....2...-0 ...#...1....1.- .1....#....1...-#..2.1...2.#..1.@------1.1.......-2..#........1.1.-..#....#...#....#....2....1.....1..#.2..3.1..2.1..#.....#....#....#....1...#....#....2.1........1..2........2.1........1..#.1...#.#..2....#....#....1....#....#...1....1....#....#....1...":
-            #     print()
-            #     print(progress_valid(s), node)
-            #     print()
             
             if not progress_valid(s): return False
 
@@ -373,6 +325,7 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
 
         STATS["not just deductions"] = True
 
+        # LP deductions
         if is_top_layer:
             if prescribed_lp_deductions is None:
                 cands = LP_deduction_candidates(s, strategies=strategies)
@@ -382,25 +335,13 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
                     newS = lp_bash(s, width, cand)
                     if newS is False: return False
                     if s != newS:
-                        # print()
-                        # print2D(s)
-                        # print2D(newS)
-                        # print("\n",newS,cand)
-
                         newCand = minimalDeductionSet(s, width, cand)
 
                         STATS["recursions"] += 1
-                        STATS["grids"] += [(s,0,newCand)]
-                        STATS["grids"] += [(newS,0,newCand)]
-
-                        updates = [x for x in range(len(s)) if s[x] != newS[x]]
-                        s = newS
-                        # Update focus cells
-
-                        # print(*cand)
-
-                        # if set(cand) == {68, 84, 98, 70}: print(); print(updates); print2D(newS); exit()
+                        STATS["grids"] += [(s,0,newCand), (newS,0,newCand)]
                         STATS["LP deductions done"] += [cand]
+
+                        s = newS
                         
                         return solve_recurse(s,
                         focus_cells = FocusCellsList(possibleList),
@@ -409,6 +350,7 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
                         current_recursion_depth=current_recursion_depth,
                         deduction_limit=deduction_limit)
             else:
+                # Goes through prescribed LP deductions. (See condense_lp function for explanation)
                 global prescribed_lp_deduction_ind
                 if prescribed_lp_deduction_ind >= len(prescribed_lp_deductions): return s
 
@@ -423,16 +365,10 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
                 newCand = minimalDeductionSet(s, width, cand)
 
                 STATS["recursions"] += 1
-                STATS["grids"] += [(s,0,newCand)]
-                STATS["grids"] += [(newS,0,newCand)]
-
-                updates = [x for x in range(len(s)) if s[x] != newS[x]]
-                s = newS
-                # Update focus cells
-
-                # print(*cand)
-
+                STATS["grids"] += [(s,0,newCand), (newS,0,newCand)]
                 STATS["LP deductions done"] += [cand]
+
+                s = newS
                 
                 return solve_recurse(s,
                 focus_cells = FocusCellsList(possibleList),
@@ -465,21 +401,10 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
                 deduction_limit=deduction_limit)
 
         STATS["used recursion"] = True
-
-        # print(recursion_limit, deduction_limit, is_top_layer, s)
-        # print2D(s)
-        # print()
-
-        # possible_caseworks = [*(
-        #     {i for i in range(len(s)) if s[i] == "."} - {*overall_focus_cells.list}
-        # )]
-        
-        # random.shuffle(possible_caseworks)
         
         possible_caseworks = possibleList[:]
 
-        # if is_top_layer: print(); print2D(s); print(sorted(divmod(u,width) for u in overall_focus_cells))
-
+        # Bifurcation...
         for lower_recursion_limit in range(recursion_limit if not is_top_layer else DEFAULT_RECURSION_LIMIT):
             best = (10**10, None, None, 0) # (recursions, grids, other child, ind)
 
@@ -494,12 +419,7 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
                         STATS["temp grids"] = []
                     STATS["temp recursions"] += 1
                     STATS["temp grids"] += [(child,current_recursion_depth+1,tuple())]
-                    # if i == 1 and ind == 68:
-                    #     print()
-                    #     print2D(child)
-                    #     print(child)
-                    #     print(friends_but_more(child,ind))
-                    #     exit()
+
                     res = solve_recurse(child, focus_cells=FocusCellsList(possibleList),
                                         is_top_layer=False,
                                         recursion_limit=lower_recursion_limit,
@@ -527,11 +447,8 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
                 deduction_limit=deduction_limit)
         return True
 
+    # Main driver
     size = len(s)
-    # global SMALL_CONSTRAINT_CUTOFF
-    # if size <= 144: SMALL_CONSTRAINT_CUTOFF = 4
-    # elif size <= 900: SMALL_CONSTRAINT_CUTOFF = 2
-    # else: SMALL_CONSTRAINT_CUTOFF = 0
     solution = solve_recurse(s, focus_cells=None, is_top_layer=True, recursion_limit=0, current_recursion_depth=0, deduction_limit=len(s)*100)
 
     if verbose:
@@ -565,8 +482,9 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
         reset_stats()
         return to_return
 
+# Condenses the ordered list of LP deductions done by finding a subsequence of the deductions that reaches the same progress such that no proper subsequence of it has this property.
 def condense_lp(s, width, lp_used, return_stat=0, prove_for_all_sols=False, supposed_to_be_solved=True, only_care_about_lights=False):
-    # Stuff to return: [just the length, the deductions themselves, full solve path]
+    # Stuff to return: [just the length, the deductions themselves, full solve path][return_stat]
     progression = [solve(s, width, verbose=False, prescribed_lp_deductions=[])]
     for lpd in lp_used:
         progression += [solve(progression[-1], width, verbose=False, prescribed_lp_deductions=[lpd])]
@@ -598,29 +516,6 @@ def condense_lp(s, width, lp_used, return_stat=0, prove_for_all_sols=False, supp
 
     curr_lpd = new_lp_used[:]
 
-    if return_stat == 0: return len(curr_lpd)
-    elif return_stat == 1: return curr_lpd
-    elif type(return_stat) is tuple: return solve(s, width, prove=prove_for_all_sols, verbose=False, prescribed_lp_deductions=curr_lpd, return_stat=return_stat)
-    else: raise Exception("Invalid return stat for condense_lp!")
-
-def condense_lp_old_archive(s, width, lp_used, return_stat=0, prove_for_all_sols=False, supposed_to_be_solved=True, only_care_about_lights=False):
-    # Stuff to return: [just the length, the deductions themselves, full solve path]
-    bestProgress = solve(s, width, verbose=False, prescribed_lp_deductions=lp_used)
-    if supposed_to_be_solved: assert puzzle_completed(bestProgress)
-
-    # print(bestProgress)
-
-    # print(len(lp_used))
-    curr_lpd = lp_used[:]
-    ind = 0
-    while ind < len(curr_lpd):
-        # Try it without lp_used[ind]
-        solved = solve(s, width, verbose=False, prescribed_lp_deductions=curr_lpd[:ind]+curr_lpd[ind+1:])
-        if (not only_care_about_lights and solved == bestProgress) or \
-           (only_care_about_lights and solved.count("@") == bestProgress.count("@")):
-            curr_lpd = curr_lpd[:ind]+curr_lpd[ind+1:]
-        else:
-            ind += 1
     if return_stat == 0: return len(curr_lpd)
     elif return_stat == 1: return curr_lpd
     elif type(return_stat) is tuple: return solve(s, width, prove=prove_for_all_sols, verbose=False, prescribed_lp_deductions=curr_lpd, return_stat=return_stat)
