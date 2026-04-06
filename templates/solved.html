@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Akari Solver and Generator</title>
+    <meta id="proof-length" data="{{proof|length}}">
+    <style>
+        .hidden {
+            display: none;
+        }
+
+        .transparent {
+            opacity: 0;
+        }
+
+        .inline {
+            display: inline;
+        }
+
+        img {
+            height: 75vh;
+        }
+    </style>
+</head>
+<body>
+    {% if numsols == 0 %}
+        <p>There are no solutions. The proof is displayed below. (Level: {{numlp}})</p>
+    {% elif numsols == 1 %}
+        <p>There is a unique solution. The proof is displayed below. (Level: {{numlp}})</p>
+    {% else %}
+        <p>There are {{numsols}} solutions. The proof is displayed below. (Level: {{numlp}})</p>
+    {% endif %}
+    <button onclick="beginning()" id="beginningbutton" class="inline" disabled>&lt;&lt;</button>
+    <button onclick="prev()" id="prevbutton" class="inline" disabled>Prev</button>
+    <button onclick="next()" id="nextbutton" class="inline">Next</button>
+    <button onclick="ending()" id="endingbutton" class="inline">&gt;&gt;</button>
+    <p class="inline" id="stepcounter">Page ?/?</p>
+    <br>
+    {% for i in range(proof|length) %}
+        <img src="{{url_for('static', filename=proof[i])}}" {% if i > 0 %} class="transparent" {% endif %} id="step{{i+1}}">
+    {% endfor %}
+    <br>
+    <a href="{{url_for('home')}}"><button>Back</button></a>
+</body>
+<script>
+    let currpage = 1;
+    let prooflength = -1;
+
+    window.onload = () => {
+        prooflength = parseInt(document.getElementById("proof-length").getAttribute("data"));
+        for (let i = 2; i <= prooflength; i++) {
+            document.getElementById(`step${i}`).classList.remove("transparent");
+            document.getElementById(`step${i}`).classList.add("hidden");
+        }
+        document.getElementById("stepcounter").innerText = `Page ${currpage}/${prooflength}`;
+        // console.log(prooflength);
+    }
+
+    function movetopage(newpage) {
+        if (newpage < 1 || newpage > prooflength) return;
+        document.getElementById(`step${currpage}`).classList.add("hidden");
+        currpage = newpage;
+        document.getElementById(`step${currpage}`).classList.remove("hidden");
+
+        document.getElementById("beginningbutton").disabled = currpage <= 1;
+        document.getElementById("prevbutton").disabled = currpage <= 1;
+
+        document.getElementById("nextbutton").disabled = currpage >= prooflength;
+        document.getElementById("endingbutton").disabled = currpage >= prooflength;
+
+        document.getElementById("stepcounter").innerText = `Page ${currpage}/${prooflength}`;
+    }
+
+    function beginning() {
+        movetopage(1);
+    }
+
+    function prev() {
+        movetopage(currpage-1);
+    }
+
+    function next() {
+        movetopage(currpage+1);
+    }
+
+    function ending() {
+        movetopage(prooflength);
+    }
+</script>
+</html>

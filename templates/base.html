@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Akari Solver and Generator</title>
+</head>
+<body>
+    <form action="{{url_for('solve_puzzle')}}" method="post">
+        <label for="puzzle_link">Input puzzle link here:</label>
+        <input name="puzzle_link" type="text" placeholder="https://puzz.link/p?akari/6/5/m6dh7eq" size="50"> <br>
+        <input type="checkbox" name="use_hard_lp">
+        <label for="use_hard_lp">This puzzle is difficult (turning on this setting makes the solver try more deductions, but also makes it slower)</label> <br> <br>
+        <button type="submit">Solve!</button>
+    </form>
+    <br>
+    <a href="{{url_for('generator')}}"><button>Go to puzzle generator</button></a>
+</body>
+</html>
