@@ -42,7 +42,7 @@ def test_puzzle(link):
 
     exit()
 
-# test_puzzle("https://puzz.link/p?akari/10/10/blbi.nbgb.o1cv.h.bj.h.g..n1bo")
+test_puzzle("https://puzz.link/p?akari/17/17/bsbh.g.g5.g.zybi1..kbyb.i.hbh.laj.h.s.ha.g6.g6.hahb6.gbbzzs6.g.ha.g.gbi0..i1..jbsb")
 # test_all_puzzles()
 
 from generator import generate_puzzle
