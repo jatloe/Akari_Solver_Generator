@@ -19,7 +19,7 @@ def solve_puzzle():
     strats = ["SC2","N1D"]+["SC3"]*bool(hard)
 
     returned = solve(puzzle, width, use_heuristic=True, prove=True, strategies=strats,
-                     return_stat=("LP deductions done","grids","all solutions","used red/blue graph or recursion"), verbose=False)
+                     return_stat=("LP deductions done","grids","all solutions","used red/blue graph or recursion","used recursion"), verbose=False)
 
     print(returned)
     # If no recursion, condense LP
@@ -30,7 +30,7 @@ def solve_puzzle():
     ans = returned["all solutions"]
     allgrids = returned["grids"]
     numlp = len(returned["LP deductions done"])
-    if returned["used red/blue graph or recursion"]: numlp = "∞"
+    if returned["used recursion"]: numlp = "∞"
 
     proof = [draw_and_save(info, width).split("/")[1] for info in allgrids]
 

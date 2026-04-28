@@ -397,7 +397,8 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
                 STATS["recursions"] += 1
                 STATS["grids"] += [(s,0,cand)]
                 STATS["grids"] += [(t,0,cand)]
-                
+                STATS["LP deductions done"] += [cand] * (len(cand)//2) # Increase level by that much
+
                 s = t
 
                 return solve_recurse(s,
