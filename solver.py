@@ -385,13 +385,6 @@ def solve(s, width, use_heuristic=False, prove=False, should_make_gif=False, ver
         # If ever recursed then don't bother
         if is_top_layer and not STATS["used recursion"]:
             t,cand = attempt_red_blue_graph(s, width)
-            # if s == "1.             .1. ..#.# 0 #.#.. .       . .              . .        1.....1##.....1  . .... ...... .  ..1..#. .#..1..  #..... 0 .....#  #...... ......#  0 .#.1.#.1.#. 0   .1..1.#.1..1.   ...............  ...............  . ..... ..... .  1.# #. 0 .#.#.1 . . 0##. .1##.. .1.             .1":
-            #     print()
-            #     print(t,cand)
-            #     print2D(s)
-            #     print2D(t)
-            #     print(s == t)
-            #     exit()
             if s != t:
                 # WOW!
                 STATS["recursions"] += 1
