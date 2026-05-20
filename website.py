@@ -22,8 +22,9 @@ def solve_puzzle():
                      return_stat=("LP deductions done","grids","all solutions","used red/blue graph or recursion","used recursion"), verbose=False)
 
     print(returned)
+
     # If no recursion, condense LP
-    if not returned["used red/blue graph or recursion"]:
+    if returned["all solutions"] and not returned["used red/blue graph or recursion"]:
         lpd = returned["LP deductions done"]
         returned = condense_lp(puzzle, width, lpd, prove_for_all_sols=True, return_stat=("grids", "all solutions", "LP deductions done","used red/blue graph or recursion","used recursion"))
 
