@@ -294,7 +294,7 @@ def attempt_red_blue_graph(s, width):
                     parents[w] = v
                     todo += [(w,1-color)]
 
-                if start in friends and parents[v] != start:
+                if start in friends and parents[v] != start and color == start_color:
                     # A deduction was found!
                     trace_back = [v]
                     while trace_back[-1] != start: trace_back += [parents[trace_back[-1]]]

@@ -42,7 +42,8 @@ def test_puzzle(link):
 
     exit()
 
-test_puzzle("https://puzz.link/p?akari/17/17/bsbh.g.g5.g.zybi1..kbyb.i.hbh.laj.h.s.ha.g6.g6.hahb6.gbbzzs6.g.ha.g.gbi0..i1..jbsb")
+test_puzzle("https://puzz.link/p?akari/25/20/l.6bhbo1ag.k.i.i5ag.g.h16bg.g.iaga.gckaccgch..p.g.iagaj6.g.h.i.h.5ahbodo.g.i...hbgbh.j...i.i.g.g.g.gag.h6bg.b.g.g5.i.g.h.g.k.g.g.g5.l.o.g.g.g.g.g.l5ag..icgbh5b5at.obqbkbk.gbai7ck.gcn.m0..bgba.h.l7.g.g.gcj.j.61bragbj")
+# test_puzzle("https://puzz.link/p?akari/41/41/qbk7.mbq0.h0bkbmbk..h1ag.l.g.g.h.g..g.g0.ga.g6bj.j1.qak.q..kb66.gb1.i7.i1.h6.g.gb.i.xcvb.hc..h.k.g.g.g.k.h..hc.ibg.h.h666bg.g.g.gbb.i.h.jbk.h.g.i.gbbkchb.g.i2.kag6ag.k1.i.g.ic.l...j.i.j1.bj.h.i.h.gcbg.g.i.i.g.i.h.gb.i.l.icb.icbcgbj.i6.b6.i.g.h.g.h.g.i5.h..gbl.j1..k.gbi...jbjcg.h.nb.gb.nb.i6..i.g1a1bg.bg..i.c2.g.i..ldi.hcoc.k.l.h.l.i.agbg..ibj.hbg.g.h5.h.k.ibi.h6b.g.hbdh.j.g0.ibg15chbhcc.g.h.g.hbicgbi.h.g.h.g.i.h.lbg.bg.i..i.l.h.lci.hdobbibj0.i.g2c..i.bg1.i0.h.5.i..g.ic.nb.gb.nbcgbj.j...k.gai..bh.n61.h7bg.g.h.g.h6bg.gb1.g.i.l.iccdgd.h.i.ldg.h.g.h.i.g.ibg.gbg.h8.h.ibbj...j.i.j.0.l.h.i.gag.bibg.g.ibi..i.g.h.j.md.gag.g.hbk.jbbg.h.h.g.g.g.i.g.g6.hdbg.i.hb.a.k7.g.g.kb..hc.h.xcv.ib.g.g.ga..i.g.i.c.g.g.g.h.k..qakbo1ah.l76c.g.66..g.h.g.g.l.i0.h0.m.ock.b1aq.m.g.mbo")
 # test_all_puzzles()
 
 from generator import generate_puzzle
