@@ -8,8 +8,8 @@ MIN_LP_RATE = 2 # Requires >= n LP deductions at MIN_LP_RATE*n clues
 BAILOUT_RATE = 500 # Bails out with 1/(BAILOUT_RATE+1) chance when reaches max depth
 MAX_CLUE_MULTIPLIER = 1.1 # Max depth is sqrt(size) * MAX_CLUE_MULTIPLIER
 REQUIRED_PROGRESS_PROPORTION = 1.1 # If proportion of deduced unknowns is less than REQUIRED_PROGRESS_PROPORTION times the proportion of clues placed, bail out
-FILTER_RANDOM_CLUES = True
-DEPTH_RESTRICTION_START = 2
+FILTER_RANDOM_CLUES = True # If a cell and its neighbors are all already determined, this option disqualifies it from being a clue
+DEPTH_RESTRICTION_START = 2 # The number of clues before the required_progress function kicks in
 
 # Returns the required progress proportion that the puzzle must have at a certain depth, given the depth limit.
 def required_progress(depth, depthLimit):
